@@ -26,20 +26,14 @@
  * Styling: none of our own — size, radius and colors come from the app's
  * `Button size="icon-titlebar"`; the glyph is the app's own browser icon
  * (codicon `globe`, the exact glyph the command palette uses for
- * "Toggle browser" (localized)), which paints with the inherited `currentColor`.
+ * "Alternar navegador"), which paints with the inherited `currentColor`.
  */
-import { Codicon, haptic, translateNow } from '@hermes/plugin-sdk'
+import { Codicon, haptic } from '@hermes/plugin-sdk'
 import { jsx } from 'react/jsx-runtime'
 
 const ID = 'browser-toggle'
 const ACTION_ID = 'view.showBrowser'
-// The app's own translated "Toggle browser" string (commandCenter.toggleBrowser),
-// so the label follows the active UI language. Resolved at read time, never cached.
-const LABEL_KEY = 'commandCenter.toggleBrowser'
-
-export function browserLabel() {
-  return translateNow(LABEL_KEY)
-}
+const LABEL = 'Alternar navegador'
 
 /**
  * The shipped binding of `view.showBrowser` as a KeyboardEventInit.
@@ -94,9 +88,7 @@ export default {
         id: ID,
         actionId: ACTION_ID,
         icon: jsx(Codicon, { name: 'globe' }),
-        get label() {
-          return browserLabel()
-        },
+        label: LABEL,
         onSelect: () => {
           haptic('tap')
           pressBrowserShortcut()
