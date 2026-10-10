@@ -2,98 +2,92 @@
  * browser-toggle — Hermes Desktop plugin.
  *
  * One button that does exactly what the Ctrl+Shift+L shortcut does: opens the
- * app's built-in browser pane, and hides it again on the next press. Nothing
- * else — no pane, no backend, no own browser.
+ * app's built-in browser pane, and hides it again on the next press.
  *
- * HOW THE NATIVE ACTION IS REUSED (no browser is reimplemented here)
- * ------------------------------------------------------------------
- * The shortcut is a keybind action: `view.showBrowser`, shipped default
- * `mod+shift+l` (apps/desktop/src/lib/keybinds/actions.ts), whose handler is
- * `toggleBrowserTab()` (apps/desktop/src/app/hooks/use-keybinds.ts →
- * apps/desktop/src/store/preview.ts). The plugin SDK has no door that runs a
- * keybind action by id, so this button feeds the app's OWN dispatcher: it
- * dispatches the shortcut's chord on the window, and the app's capture-phase
- * keydown listener resolves it and runs `toggleBrowserTab()` — the same code
- * path a physical Ctrl+Shift+L takes. The app itself uses the same trick for
- * its F12 hook (use-keybinds.ts dispatches synthetic KeyboardEvents).
+ * Reuses the app's native action: the click dispatches the chord of the
+ * `view.showBrowser` keybind on the window, so the app's own listener runs
+ * `toggleBrowserTab()` — the same path a physical Ctrl+Shift+L takes.
  *
- * THE BUTTON ITSELF is a `titleBar.tools.right` contribution, so the app
- * renders it with its own TitlebarToolButton: same 24×24 box, same codicon
- * glyph size, same hover and same tooltip (label + the live ⌘/Ctrl⇧L hint
- * coming from `actionId`) as the neighbouring Settings / Layout / HUD mode
- * buttons in the top-right titlebar cluster.
+ * WHERE IT LIVES: the `titleBar.right` slot, i.e. INSIDE the app's main right
+ * cluster (the one that holds Settings / Layout / HUD mode). That cluster is
+ * `-webkit-app-region: no-drag` and is reserved against the window-drag strip
+ * of the side panes. The older `titleBar.tools.right` slot is a separate
+ * cluster that is NOT reserved, so when a right-hand pane was open (e.g.
+ * brand-lean) its drag strip covered the button: no hover, no tooltip, and a
+ * click dragged the window.
  *
- * Styling: none of our own — size, radius and colors come from the app's
- * `Button size="icon-titlebar"`; the glyph is the app's own browser icon
- * (codicon `globe`, the exact glyph the command palette uses for
- * "Alternar navegador"), which paints with the inherited `currentColor`.
+ * LANGUAGE: the tooltip text comes from the app's own translation of the
+ * keybind (`t.keybinds.actions['view.showBrowser']`) through `useI18n`, so it
+ * follows the active UI language and re-renders on a language switch.
  */
-import { Codicon, haptic } from '@hermes/plugin-sdk'
+import { Button, Codicon, Tip, haptic, useI18n } from '@hermes/plugin-sdk'
 import { jsx } from 'react/jsx-runtime'
 
 const ID = 'browser-toggle'
 const ACTION_ID = 'view.showBrowser'
-const LABEL = 'Alternar navegador'
 
-/**
- * The shipped binding of `view.showBrowser` as a KeyboardEventInit.
- *
- * `mod` is Cmd on macOS and Ctrl everywhere else (combo.ts folds Ctrl into
- * `mod` off macOS), so the chord has to be platform-shaped or the combo index
- * would never match. The base token is the unshifted `l`.
- */
-export function browserChordEventInit(platform) {
-  const mac = /mac/i.test(String(platform ?? (globalThis.navigator ? navigator.platform : '')))
-  return {
-    altKey: false,
-    code: 'KeyL',
-    ctrlKey: !mac,
-    key: 'l',
-    metaKey: mac,
-    shiftKey: true
-  }
+function isMac(platform) {
+  return /mac/i.test(String(platform ?? (globalThis.navigator ? navigator.platform : '')))
 }
 
-/**
- * Press, then release, the shortcut's chord — the app's keybind listener runs
- * the bound action exactly as it would for a physical keypress.
- *
- * The paired keyup matters: modifier-driven chrome (the layout glyph's held-⌘
- * morph, `useModifierHeld`) tracks Ctrl on keydown and clears it on keyup, so
- * a click that only fakes the keydown would leave that morph stuck on.
- *
- * Returns true when the chord was dispatched.
- */
+/** The shipped binding of `view.showBrowser` as a KeyboardEventInit. */
+export function browserChordEventInit(platform) {
+  const mac = isMac(platform)
+  return { altKey: false, code: 'KeyL', ctrlKey: !mac, key: 'l', metaKey: mac, shiftKey: true }
+}
+
+/** Shortcut hint shown next to the label (display only). */
+export function browserHint(platform) {
+  return isMac(platform) ? '⌘⇧L' : 'Ctrl+Shift+L'
+}
+
+/** Press, then release, the shortcut's chord so the app runs the bound action. */
 export function pressBrowserShortcut(platform) {
   const target = document.body || document.documentElement
   if (!target) return false
-
   const init = browserChordEventInit(platform)
-
   target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init }))
   target.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: init.key }))
-
   return true
+}
+
+/** Localized label, falling back to the action id if the app has no string. */
+export function browserLabel(t) {
+  return t?.keybinds?.actions?.[ACTION_ID] ?? ACTION_ID
+}
+
+function BrowserToggleButton() {
+  const { t } = useI18n()
+  const label = browserLabel(t)
+
+  const tip = jsx('span', {
+    children: [label, jsx('span', { className: 'ms-2 opacity-55', children: browserHint() }, 'hint')]
+  })
+
+  return jsx(Tip, {
+    label: tip,
+    placement: 'toolbar',
+    children: jsx(Button, {
+      'aria-label': label,
+      className:
+        'text-muted-foreground/85 hover:bg-(--ui-control-hover-background) hover:text-foreground bg-transparent select-none',
+      onClick: () => {
+        haptic('tap')
+        pressBrowserShortcut()
+      },
+      onPointerDown: event => event.stopPropagation(),
+      size: 'icon-titlebar',
+      type: 'button',
+      variant: 'ghost',
+      children: jsx(Codicon, { name: 'globe' })
+    })
+  })
 }
 
 export default {
   id: ID,
   name: 'Browser toggle',
   register(ctx) {
-    ctx.register({
-      id: ID,
-      area: 'titleBar.tools.right',
-      order: 100,
-      data: {
-        id: ID,
-        actionId: ACTION_ID,
-        icon: jsx(Codicon, { name: 'globe' }),
-        label: LABEL,
-        onSelect: () => {
-          haptic('tap')
-          pressBrowserShortcut()
-        }
-      }
-    })
+    ctx.register({ id: ID, area: 'titleBar.right', order: 100, render: BrowserToggleButton })
   }
 }

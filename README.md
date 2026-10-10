@@ -5,7 +5,7 @@ exactly what the `Ctrl+Shift+L` shortcut does (`view.showBrowser` →
 `toggleBrowserTab()`). Nothing else.
 
 - Deployed at: `~/.hermes/desktop-plugins/browser-toggle/plugin.js`
-- Area: `titleBar.tools.right` — the top-right titlebar cluster that also holds
+- Area: `titleBar.right` — the top-right titlebar cluster that also holds
   Settings / Layout / **HUD mode**. The app renders the contribution with its
   own `TitlebarToolButton`, so box (24×24), glyph size (13.9px), hover, colors
   and tooltip come from the app itself.
