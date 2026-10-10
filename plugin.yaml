@@ -1,0 +1,4 @@
+name: browser-toggle
+version: 1.0.0
+description: "One titlebar button that opens and hides the built-in browser, the same as Ctrl+Shift+L. Front-end only: no agent calls, no network, no API keys."
+author: jcperdomoybarra

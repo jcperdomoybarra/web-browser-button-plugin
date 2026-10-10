@@ -23,20 +23,21 @@ exactly what the `Ctrl+Shift+L` shortcut does (`view.showBrowser` →
 
 ## Files
 
-- `plugin.js`: source of truth (plain ESM, no build step).
+- `desktop/plugin.js`: source of truth (plain ESM, no build step).
+- `plugin.yaml`: catalog manifest.
 - `SHA256SUMS`: source vs deployed copy.
 
 ## Install
 
-Copy `plugin.js` to `~/.hermes/desktop-plugins/browser-toggle/plugin.js`, then
+Copy `desktop/plugin.js` to `~/.hermes/desktop-plugins/browser-toggle/plugin.js`, then
 Ctrl+K → **Reload desktop plugins**.
 
 ## Verify
 
 ```bash
-node --check plugin.js
+node --check desktop/plugin.js
 sha256sum -c SHA256SUMS
-cmp plugin.js ~/.hermes/desktop-plugins/browser-toggle/plugin.js
+cmp desktop/plugin.js ~/.hermes/desktop-plugins/browser-toggle/plugin.js
 ```
 
 ## Status
