@@ -4,6 +4,15 @@ Hermes Desktop plugin: one button that opens/closes the built-in browser,
 exactly what the `Ctrl+Shift+L` shortcut does (`view.showBrowser` →
 `toggleBrowserTab()`). Nothing else.
 
+![The globe button in the titlebar, next to HUD mode, with its tooltip](docs/screenshot.png)
+
+## Why
+
+I am trying to do everything inside the Hermes Desktop app, so having a button
+for the built-in browser makes sense to me. The `Ctrl+Shift+L` keybinding works
+great too; this is just the click version, and it takes almost no space (one
+small icon in the titlebar). I hope it is useful to others.
+
 ## How it works
 
 - **Where:** slot `titleBar.right`, inside the app's main top-right cluster
@@ -23,6 +32,7 @@ exactly what the `Ctrl+Shift+L` shortcut does (`view.showBrowser` →
 
 ## Files
 
+- `docs/screenshot.png`: screenshot used in this README.
 - `desktop/plugin.js`: source of truth (plain ESM, no build step).
 - `plugin.yaml`: catalog manifest.
 - `SHA256SUMS`: source vs deployed copy.
