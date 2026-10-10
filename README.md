@@ -10,7 +10,7 @@ exactly what the `Ctrl+Shift+L` shortcut does (`view.showBrowser` →
   own `TitlebarToolButton`, so box (24×24), glyph size (13.9px), hover, colors
   and tooltip come from the app itself.
 - Icon: codicon `globe` — the same glyph the command palette uses for
-  "Alternar navegador"; it paints with the inherited `currentColor`.
+  "Toggle browser (localized)"; it paints with the inherited `currentColor`.
 - Trigger: dispatches the shortcut's own chord on the window, so the app's
   capture-phase keybind listener runs the native `view.showBrowser` action.
   No browser logic of our own, no `eval`, no DOM scraping of core UI.
@@ -44,4 +44,4 @@ Live checks (throwaway instance + CDP, temp `HERMES_HOME`, nothing of the real
 setup written): button present next to HUD mode with the same classes/size;
 trusted mouse click toggles the browser pane open→closed; trusted
 `Ctrl+Shift+L` toggles it the same way; hover tooltip reads
-"Alternar navegador Ctrl+Shift+L".
+"Toggle browser (localized) Ctrl+Shift+L".
